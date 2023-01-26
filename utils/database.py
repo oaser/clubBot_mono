@@ -11,21 +11,6 @@ from data.config import DB_USER, DB_PASS, HOST, DB_NAME
 db = Gino()
 
 
-# class Users(db.Model):
-#     __tablename__ = 'users'
-#     query: sql.Select
-#     update: sql.Select
-#
-#     id = Column(Integer, Sequence('dish_id_seq'), primary_key=True)
-#     user_id = Column
-#     date = Column(Date)
-#     name = Column(String(100))
-#     price = Column(Integer)
-#
-#     def __repr__(self):
-#         return f"<Dish(name='{self.name}', price='{self.price}')>"
-
-
 class Customer(db.Model):
     __tablename__ = 'customers'
     query: sql.Select
@@ -103,27 +88,11 @@ class DBCommands:
         await new_invoice.create()
         return new_invoice
 
-
-    # @staticmethod
-    # async def get_dishes():
-    #     dishes = await Dish.query.gino.all()
-    #     return dishes
-
-    # @staticmethod
-    # async def get_menu_date():
-    #     dish = await Dish.query.gino.first()
-    #     return dish.date
-
     @staticmethod
     async def get_customers_for_mailing(now: int):
         customers = await Customer.query.where((Customer.subs_before-now) < 3*3600).\
             where((Customer.subs_before-now) > 0).gino.all()
         return customers
-
-    # @staticmethod
-    # async def get_customer_by_pseudonym(pseudonym):
-    #     customer = await Customer.query.where(Customer.pseudonym == pseudonym).gino.first()
-    #     return customer
 
     @staticmethod
     async def update_fin_registration(customer_id, pseudonym, age, location):
@@ -170,47 +139,6 @@ class DBCommands:
         customers_df['subs_before'] = date_ser
 
         customers_df.to_excel('active_customers.xlsx', index=False)
-
-    # @staticmethod
-    # async def delete_item(dish_name):
-    #     await Dish.delete.where(Dish.name == dish_name).gino.status()
-
-    # @staticmethod
-    # async def update_price(dish_name, new_price):
-    #     await Dish.update.values(price=new_price).where(Dish.name == dish_name).gino.status()
-
-    # @staticmethod
-    # async def del_dish_table():
-    #     await Dish.delete.gino.all()
-
-    @staticmethod
-    async def set_current_order(customer: Customer):
-        await Customer.update.values(current_order=1).where(Customer.customer_id == customer.customer_id).gino.status()
-
-    @staticmethod
-    async def cancel_current_order():
-        await Customer.update.values(current_order=0).gino.status()
-
-    @staticmethod
-    async def update_pseudonym(customer, pseudonym):
-        await Customer.update.values(pseudonym=pseudonym).\
-            where(Customer.customer_id == customer.customer_id).gino.status()
-
-    async def credit_up(self, customer_id, val: int, customer_id_is_pseudonym=False):
-        if customer_id_is_pseudonym:
-            customer = await self.get_customer_bypseudonym(pseudonym=customer_id)
-        else:
-            customer = await self.get_customer(customer_id=customer_id)
-        new_credit = int(customer.credit) + val
-        await Customer.update.values(credit=new_credit).where(
-            Customer.customer_id == customer.customer_id).gino.status()
-        return customer
-
-    async def credit_down(self, customer_id, val: int):
-        customer = await self.get_customer(customer_id=customer_id)
-        new_credit = int(customer.credit) - val
-        await Customer.update.values(credit=new_credit).where(
-            Customer.customer_id == customer.customer_id).gino.status()
 
 
 async def create_db():
