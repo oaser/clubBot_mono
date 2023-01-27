@@ -119,14 +119,11 @@ class DBCommands:
 
         invoices_df = pd.read_sql(sql='select * from invoices', con=conn)
 
-        names_ser = invoices_df['customer_id'].apply(lambda x: ser[x])
-        invoices_df['customer_id'] = names_ser
+        invoices_df['customer_id'] = invoices_df.loc[:, 'customer_id'].apply(lambda x: ser[x])
 
-        date_ser = invoices_df['date_timestamp'].apply(lambda x: pd.to_datetime(x, unit='s'))
-        invoices_df['date_timestamp'] = date_ser
+        invoices_df['date_timestamp'] = invoices_df.loc[:, 'date_timestamp'].apply(lambda x: pd.to_datetime(x, unit='s'))
 
-        amount_ser = invoices_df.loc[:, 'amount'].div(100)
-        invoices_df['amount'] = amount_ser
+        invoices_df['amount'] = invoices_df.loc[:, 'amount'].div(100)
 
         invoices_df.to_excel('inv_output.xlsx', index=False)
 
@@ -135,8 +132,7 @@ class DBCommands:
         conn = sqlalchemy.create_engine(f"postgres+psycopg2://{DB_USER}:{DB_PASS}@{HOST}/{DB_NAME}", )
         customers_df: DataFrame = pd.read_sql(sql=f'select * from customers where subs_before >= {date_now}', con=conn)
 
-        date_ser = customers_df['subs_before'].apply(lambda x: pd.to_datetime(x, unit='s'))
-        customers_df['subs_before'] = date_ser
+        customers_df['subs_before'] = customers_df.loc[:, 'subs_before'].apply(lambda x: pd.to_datetime(x, unit='s'))
 
         customers_df.to_excel('active_customers.xlsx', index=False)
 
